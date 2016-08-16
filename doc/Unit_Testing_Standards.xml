@@ -1,0 +1,5 @@
+Each class will have its own test. For example Repository is the class, so the test will be RepositoryTests.
+Naming of Tests – A test should state what it is testing, and the outcome.
+All constructor values that are being injected need to be tested for null. Nulls are not allowed to be passed into a contructor based on the MVS coding standards
+PUnit is to be used for parallel code.
+Auto properties will not be required to be tested unless a computation is involved. However, when retrieving a data object, Assert that every property holds the expected value. 
