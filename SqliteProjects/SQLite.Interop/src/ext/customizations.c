@@ -6,3 +6,4 @@ void MVS_logToTextFile(const char *strToLog){
   fprintf(test,"%s\r\n",strToLog);
   fclose(test);
 }
+
