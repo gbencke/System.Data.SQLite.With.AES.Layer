@@ -153,7 +153,7 @@
       <MapExports>true</MapExports>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TargetMachine>MachineX86</TargetMachine>
       <CLRUnmanagedCodeCheck>true</CLRUnmanagedCodeCheck>
@@ -465,6 +465,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ext\customizations.c" />
     <ClCompile Include="src\win\AssemblyInfo.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -504,6 +505,7 @@
   <ItemGroup>
     <ClInclude Include="src\core\sqlite3.h" />
     <ClInclude Include="src\core\sqlite3ext.h" />
+    <ClInclude Include="src\ext\customizations.h" />
     <ClInclude Include="src\generic\interop.h" />
   </ItemGroup>
   <ItemGroup>
