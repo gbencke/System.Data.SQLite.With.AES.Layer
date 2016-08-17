@@ -13,6 +13,8 @@
 
 #include "../core/sqlite3.c"
 
+#include "../ext/customizations.c"
+
 #if !SQLITE_OS_WIN
 #include <wchar.h>
 #endif

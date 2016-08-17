@@ -44,7 +44,10 @@ namespace SQLiteEncryptionTestApp
                 throw new ApplicationException("SQLite Provider not found! Check App.config file");
             }
 
-            File.Delete("test.db");
+            if (File.Exists("test.db"))
+                File.Delete("test.db");
+            if (File.Exists("log.txt"))
+                File.Delete("log.txt");
 
             _fact = DbProviderFactories.GetFactory(prov);
             var _connectionString = String.Format("Data Source={0};Pooling=true;FailIfMissing=false", fileName);

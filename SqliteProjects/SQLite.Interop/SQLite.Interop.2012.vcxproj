@@ -129,7 +129,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(INTEROP_INCLUDE_DIRECTORIES);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>SQLITE_DEBUG_OS_TRACE=1;SQLITE_FORCE_OS_TRACE;$(INTEROP_INCLUDE_DIRECTORIES);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;$(SQLITE_COMMON_DEFINES);$(SQLITE_EXTRA_DEFINES);$(SQLITE_DEBUG_DEFINES);$(INTEROP_EXTRA_DEFINES);$(INTEROP_DEBUG_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -465,7 +465,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ext\customizations.c" />
+    <ClCompile Include="src\ext\customizations.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\win\AssemblyInfo.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -505,7 +507,6 @@
   <ItemGroup>
     <ClInclude Include="src\core\sqlite3.h" />
     <ClInclude Include="src\core\sqlite3ext.h" />
-    <ClInclude Include="src\ext\customizations.h" />
     <ClInclude Include="src\generic\interop.h" />
   </ItemGroup>
   <ItemGroup>
