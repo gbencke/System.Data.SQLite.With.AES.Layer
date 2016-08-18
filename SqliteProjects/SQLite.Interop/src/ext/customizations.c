@@ -46,9 +46,13 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 // The number of rounds in AES Cipher.
 #define Nr 10
 
+#define CBC 1
+#define ECB 1
+
 // jcallan@github points out that declaring Multiply as a function 
 // reduces code size considerably with the Keil ARM compiler.
 // See this link for more information: https://github.com/kokke/tiny-AES128-C/pull/3
+
 #ifndef MULTIPLY_AS_A_FUNCTION
   #define MULTIPLY_AS_A_FUNCTION 0
 #endif
@@ -593,6 +597,45 @@ int winRead(
   __int64 offset       /* Begin reading at this offset */
 );
 
+#define EMPTY_CHAR_FILE 0
+#define ENCRYPTION_PAGE_SIZE 4096
+int SizeOfDBFileInPages = 0;
+
+void AddPagesToFile(const char *File, int Pages){
+	FILE *fileToAddPages;
+	unsigned char *PagesToAdd;
+
+	PagesToAdd = malloc(ENCRYPTION_PAGE_SIZE * Pages);
+	memset (PagesToAdd,EMPTY_CHAR_FILE,ENCRYPTION_PAGE_SIZE * Pages);
+	fileToAddPages = fopen(File,"a");
+	fseek(fileToAddPages,0,SEEK_END);
+	fwrite(PagesToAdd,ENCRYPTION_PAGE_SIZE * Pages,1,fileToAddPages);
+	fclose(fileToAddPages);
+	free(PagesToAdd);
+}
+
+unsigned char key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+unsigned char iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+
+int TestEncrypt(){
+	char bufferInitial[ENCRYPTION_PAGE_SIZE*2];
+	char bufferEncrypted[ENCRYPTION_PAGE_SIZE*2];
+	char bufferDecrypted[ENCRYPTION_PAGE_SIZE*2];
+
+	memset(bufferInitial,0,ENCRYPTION_PAGE_SIZE*2);
+
+	AES128_CBC_encrypt_buffer(bufferEncrypted, bufferInitial, ENCRYPTION_PAGE_SIZE, key, iv);
+	AES128_CBC_decrypt_buffer(bufferDecrypted,bufferEncrypted, ENCRYPTION_PAGE_SIZE, key, iv);
+	
+	memset(bufferInitial,0,ENCRYPTION_PAGE_SIZE*2);
+	
+	if(memcmp(bufferDecrypted,bufferInitial,ENCRYPTION_PAGE_SIZE)==0){
+		return -1;
+	}
+
+	return 0;
+
+}
 
 int winWriteEncrypted(
   void *id,               /* File to write into */
@@ -600,7 +643,54 @@ int winWriteEncrypted(
   int amt,                        /* Number of bytes to write */
   __int64 offset            /* Offset into the file to begin writing at */
 ){
+	winFile *file = (winFile *)id;
+	MVS_logToTextFile(file->zPath);
+
+	if(!strstr(file->zPath,"-journal")){
+		int ret;
+		char tmpStr[1000];
+		int StartPage = offset / ENCRYPTION_PAGE_SIZE;
+		int EndPage = StartPage + (amt / ENCRYPTION_PAGE_SIZE) + (amt % ENCRYPTION_PAGE_SIZE > 0 ? 1 : 0);
+		__int64 FinalPosInFile = offset + amt;
+		int WritePages = (EndPage-StartPage);
+		int WriteBufferSize = WritePages * ENCRYPTION_PAGE_SIZE;
+		char *BufferToWrite;
+
+		MVS_logToTextFile("This is not a journal file write");
+
+		sprintf(tmpStr,"Offset: %ld", offset);
+		MVS_logToTextFile(tmpStr);
+		sprintf(tmpStr,"amt: %ld", amt);
+		MVS_logToTextFile(tmpStr);
+		sprintf(tmpStr,"Start Page:%d ", StartPage );
+		MVS_logToTextFile(tmpStr);
+		sprintf(tmpStr,"End Page:%d", EndPage );
+		MVS_logToTextFile(tmpStr);
+
+		if((FinalPosInFile / ENCRYPTION_PAGE_SIZE) > SizeOfDBFileInPages){
+			char NewFileSize[1000];
+			int NewSizeOfDBFileInPages =  FinalPosInFile / ENCRYPTION_PAGE_SIZE;
+			int NumberOfPagesToAdd = NewSizeOfDBFileInPages - SizeOfDBFileInPages;
+
+			if(FinalPosInFile % ENCRYPTION_PAGE_SIZE) // Account for extra bytes after page...
+				NewSizeOfDBFileInPages++;
+			
+			AddPagesToFile(file->zPath, NumberOfPagesToAdd);
+			
+			SizeOfDBFileInPages = NewSizeOfDBFileInPages;
+
+			sprintf(NewFileSize,"New File Size:%d pages",SizeOfDBFileInPages);
+			MVS_logToTextFile(NewFileSize);
+		}
+
+		BufferToWrite = malloc(WriteBufferSize);
+		winRead(id,BufferToWrite,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
+		memcpy(&BufferToWrite[offset %  ENCRYPTION_PAGE_SIZE],pBuf,amt);
+		ret = winWrite(id,BufferToWrite,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
+		free(BufferToWrite);
+	}
 	return winWrite(id,pBuf,amt,offset);
+	
 }
 
 int winReadEncrypted(
@@ -609,13 +699,31 @@ int winReadEncrypted(
   int amt,                        /* Number of bytes to write */
   __int64 offset            /* Offset into the file to begin writing at */
 ){
-	return winRead(id,(const void *)pBuf,amt,offset);
+	winFile *file = (winFile *)id;
+	int StartPage = offset / ENCRYPTION_PAGE_SIZE;
+	int EndPage = StartPage + (amt / ENCRYPTION_PAGE_SIZE) + (amt % ENCRYPTION_PAGE_SIZE > 0 ? 1 : 0);
+	int NumberPagesToRead = (EndPage-StartPage);
+	int ReadBufferSize = NumberPagesToRead * ENCRYPTION_PAGE_SIZE;
+	char *BufferToRead;
+	int ret;
+
+	if(!strstr(file->zPath,"-journal")){
+		BufferToRead = malloc(ReadBufferSize);
+		ret = winRead(id,(const void *)BufferToRead,ReadBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
+		memcpy(pBuf,&BufferToRead[offset % ENCRYPTION_PAGE_SIZE],amt);
+		free(BufferToRead);
+		return ret;
+	}
+
+	return winRead(id,pBuf,amt,offset);
 }
 
 
 void MVS_logToTextFile(const char *strToLog){
-  FILE *test = fopen("log.txt","a");
-  fprintf(test,"%s\r\n",strToLog);
-  fclose(test);
+/*
+	FILE *test = fopen("log.txt","a");
+	fprintf(test,"%s\r\n",strToLog);
+	fclose(test);
+*/
 }
 
