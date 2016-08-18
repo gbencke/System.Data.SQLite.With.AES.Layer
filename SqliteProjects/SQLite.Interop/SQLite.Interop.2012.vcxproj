@@ -129,7 +129,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>SQLITE_DEBUG_OS_TRACE=1;SQLITE_FORCE_OS_TRACE;$(INTEROP_INCLUDE_DIRECTORIES);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>LOGTEXTFILE_ENABLED;SQLITE_DEBUG_OS_TRACE=1;SQLITE_FORCE_OS_TRACE;$(INTEROP_INCLUDE_DIRECTORIES);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;$(SQLITE_COMMON_DEFINES);$(SQLITE_EXTRA_DEFINES);$(SQLITE_DEBUG_DEFINES);$(INTEROP_EXTRA_DEFINES);$(INTEROP_DEBUG_DEFINES);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -465,6 +465,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ext\aes.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\ext\customizations.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
