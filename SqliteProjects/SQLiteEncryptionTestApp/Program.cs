@@ -12,7 +12,7 @@ namespace SQLiteEncryptionTestApp
 {
     class Program
     {
-        private static int NumThreads = 8;
+        private static int NumThreads = 16;
         private static int ThreadTimeout = 60000;
         private static long logevents = 0;
 
