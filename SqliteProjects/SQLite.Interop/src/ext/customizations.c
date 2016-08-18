@@ -1,10 +1,33 @@
 #define EMPTY_CHAR_FILE 0
 #define ENCRYPTION_PAGE_SIZE 4096
 
-unsigned char key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+
 unsigned char iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
 int SizeOfDBFileInPages = 0;
 HANDLE hMutex = NULL;
+
+void EncryptPage(char *output, char *input, int length){
+	switch(CurrentEncryptionMethod){
+		case ENCRYPTION_METHOD_AES:
+			AES128_CBC_encrypt_buffer(output,input, length, MVSEncryptionKey, iv);
+			break;
+		default:
+			memcpy(output,input,length);
+			break;
+	}
+}
+
+void DecryptPage(char *output, char *input, int length){
+	switch(CurrentEncryptionMethod){
+		case ENCRYPTION_METHOD_AES:
+			AES128_CBC_decrypt_buffer(output,input, length, MVSEncryptionKey, iv);
+			break;
+		default:
+			memcpy(output,input,length);
+			break;
+	}
+}
+
 
 void AddPagesToFile(winFile *file , int Pages){
 	unsigned char *PagesToAdd;
@@ -16,7 +39,8 @@ void AddPagesToFile(winFile *file , int Pages){
 	PagesToAddEncrypted = malloc(PageToAddSizeInBytes * 2);
 	memset (PagesToAdd,EMPTY_CHAR_FILE,PageToAddSizeInBytes);
 
-	AES128_CBC_encrypt_buffer(PagesToAddEncrypted,PagesToAdd, PageToAddSizeInBytes, key, iv);
+	EncryptPage(PagesToAddEncrypted,PagesToAdd, PageToAddSizeInBytes);
+	//AES128_CBC_encrypt_buffer(PagesToAddEncrypted,PagesToAdd, PageToAddSizeInBytes, key, iv);
 
 	ret = winWrite(file,PagesToAddEncrypted,PageToAddSizeInBytes,SizeOfDBFileInPages * ENCRYPTION_PAGE_SIZE);
 	free(PagesToAdd);
@@ -24,8 +48,6 @@ void AddPagesToFile(winFile *file , int Pages){
 	
 	return ret;
 }
-
-
 
 int winWriteEncrypted(
   void *id,               /* File to write into */
@@ -88,11 +110,13 @@ int winWriteEncrypted(
 
 		ret = winRead(id,bufferEncrypted,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
 
-		AES128_CBC_decrypt_buffer(bufferDecrypted,bufferEncrypted, WriteBufferSize, key, iv);
+		DecryptPage(bufferDecrypted,bufferEncrypted, WriteBufferSize);
+		//AES128_CBC_decrypt_buffer(bufferDecrypted,bufferEncrypted, WriteBufferSize, key, iv);
 
 		memcpy(&bufferDecrypted[offset %  ENCRYPTION_PAGE_SIZE],pBuf,amt);
 
-		AES128_CBC_encrypt_buffer(BufferToWrite,bufferDecrypted, WriteBufferSize, key, iv);
+		EncryptPage(BufferToWrite,bufferDecrypted, WriteBufferSize);
+		//AES128_CBC_encrypt_buffer(BufferToWrite,bufferDecrypted, WriteBufferSize, key, iv);
 
 		ret = winWrite(id,BufferToWrite,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
 		free(BufferToWrite);
@@ -138,7 +162,8 @@ int winReadEncrypted(
 		bufferDecrypted = malloc(ReadBufferSize* 2);
 		memcpy(bufferEncrypted,BufferToRead,ReadBufferSize);
 
-		AES128_CBC_decrypt_buffer(bufferDecrypted,bufferEncrypted, ReadBufferSize, key, iv);
+		DecryptPage(bufferDecrypted,bufferEncrypted, ReadBufferSize);
+		//AES128_CBC_decrypt_buffer(bufferDecrypted,bufferEncrypted, ReadBufferSize, key, iv);
 		memcpy(pBuf,&bufferDecrypted[offset % ENCRYPTION_PAGE_SIZE],amt);
 		
 		free(BufferToRead);
@@ -151,12 +176,13 @@ int winReadEncrypted(
 	return winRead(id,pBuf,amt,offset);
 }
 
+#define LOGTEXTFILE_ENABLED
 
 void MVS_logToTextFile(const char *strToLog){
-/*
+#ifdef LOGTEXTFILE_ENABLED
 	FILE *test = fopen("log.txt","a");
 	fprintf(test,"%s\r\n",strToLog);
 	fclose(test);
-*/
+#endif 
 }
 
