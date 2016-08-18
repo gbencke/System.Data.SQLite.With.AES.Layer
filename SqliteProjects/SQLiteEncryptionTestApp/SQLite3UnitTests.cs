@@ -4,9 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Transactions;
 
 namespace SQLiteEncryptionTestApp
@@ -23,58 +21,34 @@ namespace SQLiteEncryptionTestApp
         private static List<string> droptables = new List<string>();
         private static List<string> maydroptable = new List<string>();
 
-        public static void ExecuteTests()
+        public static void ExecuteTests(bool ShouldEncrypt, bool OnlyFirstTests)
         {
-            const string fileName = "test.db";
-            var prov = "";
 
-            using (var tbl = DbProviderFactories.GetFactoryClasses())
-            {
-                foreach (DataRow row in tbl.Rows)
-                {
-                    prov = row[2].ToString();
-
-                    if (prov.IndexOf("SQLite", 0, StringComparison.OrdinalIgnoreCase) == -1 &&
-                        prov.IndexOf("SqlClient", 0, StringComparison.OrdinalIgnoreCase) == -1) continue;
-                    if (prov == "System.Data.SQLite") break;
-                }
-            }
-
-            if (String.IsNullOrEmpty(prov))
-            {
-                throw new ApplicationException("SQLite Provider not found! Check App.config file");
-            }
-
-            if (File.Exists("test.db"))
-                File.Delete("test.db");
-            if (File.Exists("log.txt"))
-                File.Delete("log.txt");
-
-            _fact = DbProviderFactories.GetFactory(prov);
-            var _connectionString = String.Format("Data Source={0};Pooling=true;FailIfMissing=false", fileName);
+            _fact = DbProviderFactories.GetFactory("System.Data.SQLite");
+            var connectionString = String.Format("Data Source={0};Pooling=true;FailIfMissing=false", ShouldEncrypt ? "test_enc.db" : "test.db");
 
             _cnn = _fact.CreateConnection();
             if (_cnn == null)
             {
                 throw new ApplicationException("Failure to create connection");
             }
-            _cnn.ConnectionString = _connectionString;
+            _cnn.ConnectionString = connectionString;
 
             _cnn.Open();
 
-            /*
-            var cmd = _cnn.CreateCommand();
-            cmd.CommandText = "PRAGMA encryption_method=AES";
-            cmd.ExecuteNonQuery();
+            if (ShouldEncrypt)
+            {
+                var cmd = _cnn.CreateCommand();
+                cmd.CommandText = "PRAGMA encryption_method=AES";
+                cmd.ExecuteNonQuery();
 
-            cmd = _cnn.CreateCommand();
-            cmd.CommandText = "PRAGMA encryption_keys=\"000102030405060708090a0b0c0d0e0f\"";
-            cmd.ExecuteNonQuery();
-             */
-
+                cmd = _cnn.CreateCommand();
+                cmd.CommandText = "PRAGMA encryption_keys=\"000102030405060708090a0b0c0d0e0f\"";
+                cmd.ExecuteNonQuery();
+            }
 
             _cnnstring = _fact.CreateConnectionStringBuilder();
-            _cnnstring.ConnectionString = _connectionString;
+            _cnnstring.ConnectionString = connectionString;
 
 
 
@@ -91,41 +65,46 @@ namespace SQLiteEncryptionTestApp
             CoersionTest();
             LockTest();
             ClearPoolTest();
-            ScalarPreTest();
-            ScalarTest();
-            ClearAllPoolsTest();
-            FastInsertMany();
-            DataAdapterTest();
-            DataAdapterWithIdentityFetch();
-            ChangePasswordTest();
-            //DataTypesSchema();
-            DataReaderCleanup();
-            DataTypeTest();
-            FullTextTest();
-            GuidTest();
-            IterationTest1();
-            IterationTest2();
-            IterationTest3();
-            ConnectionStringBuilder();
-            LeakyCommands();
-            MultiStepReaderTest();
-            ParameterizedInsert();
-            ParameterizedInsertMissingParams();
-            PrepareTest();
-            PoolingWithStealthTransactionTest();
-            PoolingWithTransactionTest();
-            ReadOnlyTest();
-            ExtendedResultCodesTest();
-            UserAggregate();
-            UserCollation();
-            UserFunction1();
-            UserFunction2();
-            UserFunction3();
-            UserFunction4();
-            UserFunction5();
-            DecimalTest();
-            DropTable();
 
+            if (!OnlyFirstTests)
+            {
+                // Ok, if we need only the first ones...
+                ScalarPreTest();
+                ScalarTest();
+                ClearAllPoolsTest();
+                FastInsertMany();
+                DataAdapterTest();
+                DataAdapterWithIdentityFetch();
+                ChangePasswordTest();
+                DataReaderCleanup();
+                DataTypeTest();
+                FullTextTest();
+                GuidTest();
+                IterationTest1();
+                IterationTest2();
+                IterationTest3();
+                ConnectionStringBuilder();
+                LeakyCommands();
+                MultiStepReaderTest();
+                ParameterizedInsert();
+                ParameterizedInsertMissingParams();
+                PrepareTest();
+                PoolingWithStealthTransactionTest();
+                PoolingWithTransactionTest();
+                ReadOnlyTest();
+                ExtendedResultCodesTest();
+                UserAggregate();
+                UserCollation();
+                UserFunction1();
+                UserFunction2();
+                UserFunction3();
+                UserFunction4();
+                UserFunction5();
+                DecimalTest();
+                DropTable();
+            }
+
+            _cnn.Close();
         }
 
         internal static void ChangePasswordTest()

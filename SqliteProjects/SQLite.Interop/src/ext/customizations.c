@@ -176,8 +176,6 @@ int winReadEncrypted(
 	return winRead(id,pBuf,amt,offset);
 }
 
-#define LOGTEXTFILE_ENABLED
-
 void MVS_logToTextFile(const char *strToLog){
 #ifdef LOGTEXTFILE_ENABLED
 	FILE *test = fopen("log.txt","a");
