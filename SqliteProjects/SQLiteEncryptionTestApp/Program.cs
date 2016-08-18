@@ -64,6 +64,8 @@ namespace SQLiteEncryptionTestApp
             _cnnstring = _fact.CreateConnectionStringBuilder();
             _cnnstring.ConnectionString = _connectionString;
 
+
+
             VersionTest();
             CreateTable();
             MultithreadingTest();
@@ -116,6 +118,7 @@ namespace SQLiteEncryptionTestApp
 
         internal static void ChangePasswordTest()
         {
+            Console.Out.WriteLine("Testing ChangePasswordTest()");
             if (_fact.GetType().Name.IndexOf("SQLite", StringComparison.OrdinalIgnoreCase) > -1)
             {
                 // Opens an unencrypted database
@@ -230,6 +233,8 @@ namespace SQLiteEncryptionTestApp
 
         internal static string VersionTest()
         {
+            Console.Out.WriteLine("Testing VersionTest()");
+
             CheckSQLite();
             string[] version = _cnn.ServerVersion.Split('.');
             if (Convert.ToInt32(version[0]) < 3
@@ -286,6 +291,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         
         internal static void MultipleFunctions()
         {
+            Console.Out.WriteLine("Testing MultipleFunctions()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -310,6 +316,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ClearPoolTest()
         {
+            Console.Out.WriteLine("Testing ClearPoolTest()");
             string table = "clearpool";
             string temp = "TEMP";
 
@@ -358,6 +365,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ClearAllPoolsTest()
         {
+            Console.Out.WriteLine("Testing ClearAllPoolsTest()");
             string table = "clearpool";
             string temp = "TEMP";
             string exists = " IF NOT EXISTS ";
@@ -463,6 +471,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         
         internal static void CoersionTest()
         {
+            Console.Out.WriteLine("Testing CoersionTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "SELECT Field1, Field2, [Fiëld3], [Fiæld4], Field5, 'A', 1, 1 + 1, 3.14159 FROM TestCase";
@@ -576,6 +585,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void CreateTable()
         {
+            Console.Out.WriteLine("Testing CreateTable()");
+
             droptables.Add("TestCase");
 
             using (DbCommand cmd = _cnn.CreateCommand())
@@ -591,11 +602,13 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string DataAdapterTest()
         {
+            Console.Out.WriteLine("Testing DataAdapterTest()");
             return DataAdapter(false);
         }
 
         internal static string DataAdapterWithIdentityFetch()
         {
+            Console.Out.WriteLine("Testing DataAdapterWithIdentityFetch()");
             return DataAdapter(true);
         }
 
@@ -688,6 +701,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void DataReaderCleanup()
         {
+            Console.Out.WriteLine("Testing DataReaderCleanup()");
             DbConnection newcnn = ((ICloneable)_cnn).Clone() as DbConnection;
             DbCommand cmd = newcnn.CreateCommand();
 
@@ -727,6 +741,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void DataTypeTest()
         {
+            Console.Out.WriteLine("Testing DataTypeTest()");
+
             DateTime now = DateTime.Now;
 
             using (DbCommand cmd = _cnn.CreateCommand())
@@ -850,6 +866,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void LeakyDataReaders()
         {
+            Console.Out.WriteLine("Testing LeakyDataReaders()");
             try
             {
                 {
@@ -897,11 +914,13 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void DropTable()
         {
+            Console.Out.WriteLine("Testing DropTable()");
             DropTables(true);
         }
 
         internal static void DropTables(bool throwError)
         {
+            
             //string[] arr = new string[] { "TestCase", "datatypetest", "MultiThreadedTest", "fulltext", "guidtest", "keyinfotest", "stepreader", "nonexistent" };
             string errors = String.Empty;
 
@@ -941,6 +960,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string FastInsertMany()
         {
+            Console.Out.WriteLine("Testing FastInsertMany");
+
             StringBuilder builder = new StringBuilder();
             using (DbTransaction dbTrans = _cnn.BeginTransaction())
             {
@@ -980,6 +1001,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void FullTextTest()
         {
+            Console.Out.WriteLine("Testing FullTextTest()");
             CheckSQLite();
 
             using (DbCommand cmd = _cnn.CreateCommand())
@@ -1031,6 +1053,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void GuidTest()
         {
+            Console.Out.WriteLine("Testing GuidTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 Guid guid = Guid.NewGuid();
@@ -1072,6 +1095,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void InsertTable()
         {
+            
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "INSERT INTO TestCase(Field1, Field2, [Fiëld3], [Fiæld4], Field5) VALUES(1, 3.14159, 'Fiëld3', 'Fiæld4', '2005-01-01 13:49:00')";
@@ -1081,6 +1105,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string IterationTest1()
         {
+            Console.Out.WriteLine("Testing IterationTest1()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1108,6 +1133,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string IterationTest2()
         {
+            Console.Out.WriteLine("Testing IterationTest2()");
             StringBuilder builder = new StringBuilder();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1135,6 +1161,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string IterationTest3()
         {
+            Console.Out.WriteLine("Testing IterationTest3()");
             StringBuilder builder = new StringBuilder();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1162,6 +1189,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void KeyInfoTest()
         {
+            Console.Out.WriteLine("Testing KeyInfoTest()");
+
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 try
@@ -1250,6 +1279,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ConnectionStringBuilder()
         {
+            Console.Out.WriteLine("Testing ConnectionStringBuilder()");
             if (_fact.GetType().Name.IndexOf("SQLite", StringComparison.OrdinalIgnoreCase) > -1)
             {
                 DbConnectionStringBuilder builder = _fact.CreateConnectionStringBuilder();
@@ -1262,6 +1292,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void LeakyCommands()
         {
+            Console.Out.WriteLine("Testing LeakyCommands()");
             for (int n = 0; n < 100000; n++)
             {
                 DbCommand cmd = _cnn.CreateCommand();
@@ -1273,6 +1304,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void LockTest()
         {
+            Console.Out.WriteLine("Testing LockTest()");
             CheckSQLite();
 
             using (DbCommand cmd = _cnn.CreateCommand())
@@ -1328,6 +1360,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void MultiStepReaderTest()
         {
+            Console.Out.WriteLine("Testing MultiStepReaderTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 droptables.Add("stepreader");
@@ -1357,6 +1390,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void MultithreadingTest()
         {
+            Console.Out.WriteLine("Testing MultithreadingTest()");
+
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 droptables.Add("MultiThreadedTest");
@@ -1451,6 +1486,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ParameterizedInsert()
         {
+            Console.Out.WriteLine("Testing ParameterizedInsert()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "INSERT INTO TestCase(Field1, Field2, [Fiëld3], [Fiæld4], Field5) VALUES(@p1,@p2,@p3,@p4,@p5)";
@@ -1484,6 +1520,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ParameterizedInsertMissingParams()
         {
+            Console.Out.WriteLine("Testing ParameterizedInsertMissingParams()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "INSERT INTO TestCase(Field1, Field2, [Fiëld3], [Fiæld4], Field5) VALUES(@p1,@p2,@p3,@p4,@p5)";
@@ -1529,6 +1566,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void PrepareTest()
         {
+            Console.Out.WriteLine("Testing PrepareTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 droptables.Add("nonexistent");
@@ -1546,6 +1584,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void PoolingWithStealthTransactionTest()
         {
+            Console.Out.WriteLine("Testing PoolingWithStealthTransactionTests");
             object value;
             if (_cnnstring.TryGetValue("Pooling", out value) == false) throw new Exception("Pooling not present in connection string");
             if ((bool)value == false) throw new InconclusiveException("Pooling not enabled in the connection string");
@@ -1574,6 +1613,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void PoolingWithTransactionTest()
         {
+            Console.Out.WriteLine("Testing PoolingWithTransactionTest()");
             object value;
             if (_cnnstring.TryGetValue("Pooling", out value) == false) throw new Exception("Pooling not present in connection string");
             if ((bool)value == false) throw new InconclusiveException("Pooling not enabled in the connection string");
@@ -1600,6 +1640,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void ReadOnlyTest()
         {
+            Console.Out.WriteLine("Testing ReadOnlyTest()");
             string RO_connectionString = _cnnstring.ConnectionString;
             object value;
             if (_cnnstring.TryGetValue("Read Only", out value) == false)
@@ -1631,6 +1672,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void ExtendedResultCodesTest()
         {
+            Console.Out.WriteLine("Testing ExtendedResultCodesTest()");
             if (_fact.GetType().Name.IndexOf("SQLite", StringComparison.OrdinalIgnoreCase) > -1)
             {
                 SQLiteConnection cnn = new SQLiteConnection(_cnnstring.ConnectionString);
@@ -1692,6 +1734,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void TransactionScopeTest()
         {
+            Console.Out.WriteLine("Testing TransactionScopeTest()");
             using (TransactionScope scope = new TransactionScope())
             {
                 using (DbConnection cnn2 = ((ICloneable)_cnn).Clone() as DbConnection)
@@ -1746,6 +1789,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// <returns></returns>
         internal static string UserAggregate()
         {
+            Console.Out.WriteLine("Testing UserAggregate()");
             CheckSQLite();
 
             StringBuilder builder = new StringBuilder();
@@ -1775,6 +1819,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// </summary>
         internal static void UserCollation()
         {
+            Console.Out.WriteLine("Testing UserCollation()");
             CheckSQLite();
 
             using (DbCommand cmd = _cnn.CreateCommand())
@@ -1794,6 +1839,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
         /// <returns></returns>
         internal static string UserFunction1()
         {
+            Console.Out.WriteLine("Testing UserFunction1()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1814,6 +1860,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string UserFunction2()
         {
+            Console.Out.WriteLine("Testing UserFunction2()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1834,6 +1881,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string UserFunction3()
         {
+            Console.Out.WriteLine("Testing UserFunction3()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1854,6 +1902,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string UserFunction4()
         {
+            Console.Out.WriteLine("Testing UserFunction4()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1874,6 +1923,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static string UserFunction5()
         {
+            Console.Out.WriteLine("Testing UserFunction5()");
             CheckSQLite();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1894,6 +1944,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void VerifyBinaryData()
         {
+            Console.Out.WriteLine("Testing VerifyBinaryData()");
             BinaryInsert();
             using (DbCommand cmd = _cnn.CreateCommand())
             {
@@ -1920,6 +1971,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void DecimalTest()
         {
+            Console.Out.WriteLine("Testing DecimalTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 droptables.Add("DECTEST");
@@ -1942,6 +1994,8 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ScalarPreTest()
         {
+            Console.Out.WriteLine("Testing ScalarPreTest()");
+
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 droptables.Add("SCALARTEST");
@@ -1977,6 +2031,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void ScalarTest()
         {
+            Console.Out.WriteLine("Testing ScalarTest()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "SELECT x FROM SCALARTEST ORDER BY x";
@@ -1986,6 +2041,7 @@ INSERT INTO B (ID, MYVAL) VALUES(1,'TEST');
 
         internal static void VerifyInsert()
         {
+            Console.Out.WriteLine("Testing VerifyInsert()");
             using (DbCommand cmd = _cnn.CreateCommand())
             {
                 cmd.CommandText = "SELECT Field1, Field2, [Fiëld3], [Fiæld4], Field5 FROM TestCase";
