@@ -110,6 +110,10 @@ SQlite3 db being used.
 */
 int SizeOfDBFileInPages = 0;
 
+void SetSizeOfDBFileInPages(int NewValue){
+	SizeOfDBFileInPages = NewValue;
+}
+
 /*
 As we use paging, and we might have multiple threads, it is always good to use mutexes, let us initialized our mutex to NULL.
 */
