@@ -126,8 +126,9 @@ parameters are valid or not, and also there is not the Concept of Exceptions, so
 allocated prior to the function below being called, there will be a memory corruption that can make the program instable.
 */
 
-void EncryptPage(char *output, char *input, int length){
-	
+void EncryptPage(char *output, char *input, int length, int offsetStart){
+	int f;
+	FILE *saida;
 	/* So, first thing we need to know the algortithm to use...
 	   in our case now we have only AES... */
 	switch(CurrentEncryptionMethod){
@@ -136,6 +137,16 @@ void EncryptPage(char *output, char *input, int length){
 			// https://github.com/kokke/tiny-AES128-C and passed also the 
 			// Encryption key which is defined by the PragTyp_ENCRYPTION_KEYS PRAGMA in
 			// slite3.c file lines: 112096 - 112117
+#ifdef LOG_BUFFERS
+			if(offsetStart > -1){
+				saida = fopen("C:\\git\\MVS\\SqliteProjects\\SqliteProjects\\bin\\Debug\\Win32\\log.encrypt.txt","a");
+				for(f=0;f<length;f++){
+					fprintf(saida,"%d - 0x%X - %c\r\n", f + offsetStart,input[f],input[f]);
+				}
+				fprintf(saida,"------------------------------------------------------------------------------------------------------------------\r\n");
+				fclose(saida);
+			}
+#endif
 			AES128_CBC_encrypt_buffer(output,input, length, MVSEncryptionKey, iv);
 			break;
 		default:
@@ -148,10 +159,23 @@ void EncryptPage(char *output, char *input, int length){
 
 
 // Same commentaries from EncryptPage apply here, but now we decrypt instead of encrypting.
-void DecryptPage(char *output, char *input, int length){
+void DecryptPage(char *output, char *input, int length, int offsetStart){
+	int f;
+	FILE *saida;
+
 	switch(CurrentEncryptionMethod){
 		case ENCRYPTION_METHOD_AES:
 			AES128_CBC_decrypt_buffer(output,input, length, MVSEncryptionKey, iv);
+#ifdef LOG_BUFFERS
+			if(offsetStart > -1){
+				saida = fopen("C:\\git\\MVS\\SqliteProjects\\SqliteProjects\\bin\\Debug\\Win32\\log.decrypt.txt","a");
+				for(f=0;f<length;f++){
+					fprintf(saida,"%d - 0x%X - %c\r\n", f + offsetStart,output[f],output[f]);
+				}
+				fprintf(saida,"------------------------------------------------------------------------------------------------------------------\r\n");
+				fclose(saida);
+			}
+#endif
 			break;
 		default:
 			memcpy(output,input,length);
@@ -222,7 +246,7 @@ int AddPagesToFile(winFile *file , int Pages){
 
 	// Okay, now that we have a very homogeneous buffer with all bytes filled with the same value, we
 	// can encrypt the buffer and store the result on our other allocated buffer: PagesToAddEncrypted
-	EncryptPage(PagesToAddEncrypted,PagesToAdd, PageToAddSizeInBytes);
+	EncryptPage(PagesToAddEncrypted,PagesToAdd, PageToAddSizeInBytes, -1);
 
 	// So, we have 2 buffers: one encrypted and the other not encrypted, we can then use the original
 	// low level io function from SQLite3 to write the pages on the END OF THE FILE, we calculate the 
@@ -346,7 +370,7 @@ int winWriteEncrypted(
 		ret = winRead(id,bufferEncrypted,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
 		// Ok, we have a buffer, read directly from the disk, but it is encrypted, so we need to 
 		// decrypt it...
-		DecryptPage(bufferDecrypted,bufferEncrypted, WriteBufferSize);
+		DecryptPage(bufferDecrypted,bufferEncrypted, WriteBufferSize, StartPage * ENCRYPTION_PAGE_SIZE);
 		// Now that we have a decrypted buffer, we need to copy the data that we need to write on the 
 		// exact location on the buffer that we just read and decrypted, so we are going to do some
 		// pointer arithmetics to get the correct byte to start copying on the buffer and then 
@@ -355,7 +379,7 @@ int winWriteEncrypted(
 		// Ok, now we have the final buffer ready, as we read the data from the disk and then 
 		// copied the new data into the correct position with cirurgical precision.
 		// We now encrypt the data, and...
-		EncryptPage(BufferToWrite,bufferDecrypted, WriteBufferSize);
+		EncryptPage(BufferToWrite,bufferDecrypted, WriteBufferSize, StartPage * ENCRYPTION_PAGE_SIZE);
 		// We write the final encrypted modified data back into the disk...
 		ret = winWrite(id,BufferToWrite,WriteBufferSize,StartPage * ENCRYPTION_PAGE_SIZE);
 		// Dellocate all buffers.
@@ -440,7 +464,7 @@ int winReadEncrypted(
 		// Copy the read buffer into BufferEncrypted...
 		memcpy(bufferEncrypted,BufferToRead,ReadBufferSize);
 		// Let us decrypt the buffer and place it in bufferDecrypted.
-		DecryptPage(bufferDecrypted,bufferEncrypted, ReadBufferSize);
+		DecryptPage(bufferDecrypted,bufferEncrypted, ReadBufferSize, StartPage * ENCRYPTION_PAGE_SIZE);
 		// and then we copy the decrypted buffer into the final buffer that was 
 		// passed by parameter.
 		memcpy(pBuf,&bufferDecrypted[offset % ENCRYPTION_PAGE_SIZE],amt);
@@ -464,7 +488,7 @@ int winReadEncrypted(
 // Our simple, but effective logging function...
 void MVS_logToTextFile(const char *strToLog){
 #ifdef LOGTEXTFILE_ENABLED
-	FILE *test = fopen("log.txt","a");
+	FILE *test = fopen(".\\log.txt","a");
 	fprintf(test,"%s\r\n",strToLog);
 	fclose(test);
 #endif 
