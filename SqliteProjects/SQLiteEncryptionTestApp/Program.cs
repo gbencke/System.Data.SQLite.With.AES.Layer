@@ -37,6 +37,8 @@ namespace SQLiteEncryptionTestApp
                 Banner("Testing Regular SQLite3 operations WITHOUT ENCRYPTION");
                 SQLite3UnitTests.ExecuteTests(false, true);
 
+                return;
+
                 Banner("Testing Regular SQLite3 operations WITH ENCRYPTION");
                 SQLite3UnitTests.ExecuteTests(true,true);
                 

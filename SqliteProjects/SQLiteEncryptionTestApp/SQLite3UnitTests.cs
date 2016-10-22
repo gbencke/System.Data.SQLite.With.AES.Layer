@@ -21,8 +21,104 @@ namespace SQLiteEncryptionTestApp
         private static List<string> droptables = new List<string>();
         private static List<string> maydroptable = new List<string>();
 
+        public static DbConnection GetConnectionToEncryptedDB()
+        {
+            _fact = DbProviderFactories.GetFactory("System.Data.SQLite");
+            var connectionString = String.Format("Data Source={0};Pooling=true;FailIfMissing=false", "encrypted.db");
+
+            _cnn = _fact.CreateConnection();
+            if (_cnn == null)
+            {
+                throw new ApplicationException("Failure to create connection");
+            }
+            _cnn.ConnectionString = connectionString;
+
+            _cnn.Open();
+
+            var cmd = _cnn.CreateCommand();
+            cmd.CommandText = "PRAGMA encryption_method=AES";
+            cmd.ExecuteNonQuery();
+
+            cmd = _cnn.CreateCommand();
+            cmd.CommandText = "PRAGMA encryption_keys=\"000102030405060708090a0b0c0d0e0f\"";
+            cmd.ExecuteNonQuery();
+
+            return _cnn;
+        }
+
+        public static void DoUpdatesOnEncryptedDb()
+        {
+            var _cnn = GetConnectionToEncryptedDB();
+            var cmd = _cnn.CreateCommand();
+            var ReallyLargeString = "This is a Test...";
+
+            while (true)
+            {
+                ReallyLargeString += ReallyLargeString;
+                if (ReallyLargeString.Length > 4000) break;
+            }
+
+            for (var currentItensToInsert = 0; currentItensToInsert < 100; currentItensToInsert++)
+            {
+                cmd = _cnn.CreateCommand();
+                cmd.CommandText = string.Format("INSERT INTO TEST_TABLE (ID,T_VALUE,CURRENT_MESSAGE  ) VALUES ({0},{1},\'{2}\')", currentItensToInsert, currentItensToInsert + 1991, ReallyLargeString);
+                cmd.ExecuteNonQuery();                
+            }
+
+            cmd = _cnn.CreateCommand();
+            cmd.CommandText = "UPDATE TEST_TABLE SET T_VALUE = T_VALUE + 1991";
+            cmd.ExecuteNonQuery();  
+
+            cmd = _cnn.CreateCommand();
+            cmd.CommandText = "SELECT * FROM TEST_TABLE";
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Console.Out.WriteLine("ID={0}, T_VALUE={1}",reader[0], reader[1]);
+            }
+            _cnn.Close();                        
+        }
+
+        public static void CreateEncryptedDBAndDoInserts()
+        {
+            var _cnn = GetConnectionToEncryptedDB();
+            var cmd = _cnn.CreateCommand();
+
+            var ReallyLargeString = "This is a Test...";
+
+            while (true)
+            {
+                ReallyLargeString += ReallyLargeString;
+                if (ReallyLargeString.Length > 4000) break;
+            }
+
+            cmd = _cnn.CreateCommand();
+            cmd.CommandText = String.Format("CREATE TABLE TEST_TABLE (ID INT, T_VALUE INT ,CURRENT_MESSAGE TEXT ) ");
+            cmd.ExecuteNonQuery();
+
+            cmd = _cnn.CreateCommand();
+            cmd.CommandText = String.Format("INSERT INTO TEST_TABLE (ID, T_VALUE,CURRENT_MESSAGE  ) VALUES (11,201,\'{0}\')", ReallyLargeString);
+            cmd.ExecuteNonQuery();
+            _cnn.Close();            
+        }
+
+        public static void InsertAndReadTest()
+        {
+            if (!File.Exists(".\\encrypted.db"))
+            {
+                CreateEncryptedDBAndDoInserts();
+            }
+            else
+            {
+                DoUpdatesOnEncryptedDb();
+            }
+        }
+
         public static void ExecuteTests(bool ShouldEncrypt, bool OnlyFirstTests)
         {
+
+            InsertAndReadTest();
+            return;
 
             _fact = DbProviderFactories.GetFactory("System.Data.SQLite");
             var connectionString = String.Format("Data Source={0};Pooling=true;FailIfMissing=false", ShouldEncrypt ? "test_enc.db" : "test.db");
@@ -49,7 +145,6 @@ namespace SQLiteEncryptionTestApp
 
             _cnnstring = _fact.CreateConnectionStringBuilder();
             _cnnstring.ConnectionString = connectionString;
-
 
 
             VersionTest();
