@@ -2,7 +2,9 @@
 using System.Text;
 using System.IO;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 
 
@@ -21,6 +23,9 @@ namespace SQLite3EncryptionADOUnitTests
 
         private void CleanDatabaseFiles()
         {
+            if (File.Exists(String.Format("{0}{1}", _currentAssemblyPath, "encryption.db")))
+                File.Delete(String.Format("{0}{1}", _currentAssemblyPath, "encryption.db"));
+
             if (File.Exists(String.Format("{0}{1}", _currentAssemblyPath,"ADO.TestConnection.db")))
                 File.Delete(String.Format("{0}{1}", _currentAssemblyPath, "ADO.TestConnection.db"));
 
@@ -80,6 +85,23 @@ namespace SQLite3EncryptionADOUnitTests
             using (var cmd = cnn.CreateCommand())
             {
                 cmd.CommandText = String.Format("SELECT COUNT(1) FROM STUDENT WHERE FinalGrade = \'A\' ");
+                var dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    ret = Int32.Parse(dr[0].ToString());
+                }
+            }
+
+            return ret;
+        }
+
+        private static int GetNumbersOfRowsInTableWithId(DbConnection cnn, string tableName, int id)
+        {
+            var ret = -1;
+
+            using (var cmd = cnn.CreateCommand())
+            {
+                cmd.CommandText = String.Format("SELECT COUNT(1) FROM {0} where ID={1}", tableName, id);
                 var dr = cmd.ExecuteReader();
                 if (dr.Read())
                 {
@@ -343,6 +365,79 @@ namespace SQLite3EncryptionADOUnitTests
             }
 
             Assert.IsTrue(true); // If it has reached here, it is ok...
+        }
+
+        private static string CreateABigStringForTestingPurposes(int size)
+        {
+            var ret = "Test To Fill...";
+            
+            while (true)
+            {
+                ret  += ret ;
+                if (ret.Length > size) break;
+            }
+
+            return ret;
+        }
+
+        [Test]
+        public void TestInsertUpdateExistingDb()
+        {
+            var cnn = GetConnection("encryption.db");
+            Assert.IsNotNull(cnn);
+
+            var reallyLargeString = CreateABigStringForTestingPurposes(4000);
+
+            using (var cmd = cnn.CreateCommand())
+            {
+                cmd.CommandText = String.Format("CREATE TABLE TEST_TABLE (ID INT, T_VALUE INT ,CURRENT_MESSAGE TEXT ) ");
+                cmd.ExecuteNonQuery();
+            }
+
+            for (var counter = 0; counter < 100; counter++)
+            {
+                using (var cmd = cnn.CreateCommand())
+                {
+
+                    cmd.CommandText =
+                        String.Format("INSERT INTO TEST_TABLE (ID, T_VALUE,CURRENT_MESSAGE  ) VALUES (1,{0},\'{1}\')",
+                            counter + 200, reallyLargeString);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            //Check if the xUnit++ runner is available...
+            var xunitRunnerCommand = String.Format("{0}{1}", _currentAssemblyPath, "xUnit++.console.x86.Debug.exe");
+            var unitTestDllWithFullPath = String.Format("{0}{1}", _currentAssemblyPath, "SQLite3EncryptionxUnitCppTest.dll");
+            Assert.IsTrue(File.Exists(xunitRunnerCommand));
+            cnn.Close();
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = xunitRunnerCommand,
+                WorkingDirectory = _currentAssemblyPath,
+                Arguments =
+                    String.Format(" -v -n \"xUnit -> Insert and Update on existing encrypted DB\" \"{0}\"",
+                        unitTestDllWithFullPath)
+            };
+
+            // Okay, now we will call the xUnit++ Runner
+            var runningTestRunner = Process.Start(psi);
+            
+            Assert.IsNotNull(runningTestRunner);
+            runningTestRunner.WaitForExit();
+
+            cnn = GetConnection("encryption.db");
+
+            var numRows = GetNumbersOfRowsInTable(cnn, "TEST_TABLE");
+            Assert.IsTrue(200 == numRows);
+
+            var numerOfRowsWithId1 = GetNumbersOfRowsInTableWithId(cnn, "TEST_TABLE", 1);
+            Assert.IsTrue(100 == numerOfRowsWithId1);
+            
+            var numerOfRowsWithId2 = GetNumbersOfRowsInTableWithId(cnn, "TEST_TABLE", 2);
+            Assert.IsTrue(100 == numerOfRowsWithId2);
+
         }
     }
 }

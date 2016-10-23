@@ -189,3 +189,41 @@ FACT("xUnit -> Drop Table")
 	 sqlite3_close(db);
 }
 
+void CreateABigStringForTestingPurposes(char **string_to_fill, int size){
+	
+	*string_to_fill = new char[size*2];
+	memset(*string_to_fill,0,size*2);
+
+
+	while(1){
+		strcat(*string_to_fill,"Test To Fill...");
+		if(strlen(*string_to_fill)>4000)
+			break;
+	}
+}
+
+
+FACT("xUnit -> Insert and Update on existing encrypted DB")
+{
+	 int rc;
+	 char sql[5000];
+	 char *test_string = NULL;
+	 char buffer[100];
+
+	 CreateABigStringForTestingPurposes(&test_string,4000);
+
+	 sqlite3 *db = Sqlite3ReturnEncryptedDb("encryption.db");
+	 Assert.NotEqual(NULL,(int)db);
+
+	 sprintf(sql, " UPDATE TEST_TABLE SET T_VALUE = T_VALUE + 1900 ");
+	 rc = Sqlite3ExecWrapper(db,sql);
+	 Assert.Equal(rc,SQLITE_OK);
+
+     for(int counter=0;counter<100;counter++){
+		 sprintf(sql, " INSERT INTO TEST_TABLE (ID, T_VALUE,CURRENT_MESSAGE  ) VALUES (2,%d,\'%s\')",counter,test_string);
+		 rc = Sqlite3ExecWrapper(db,sql);
+		 Assert.Equal(rc,SQLITE_OK);
+	 }
+
+	 sqlite3_close(db);
+}
