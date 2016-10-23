@@ -782,7 +782,7 @@
         NOTE: The final output files need to end up in one place.  The value of
               this property must have a trailing backslash.
     -->
-    <BinaryOutputPath Condition="'$(BinaryOutputPath)' == ''">$(SQLiteNetDir)\bin\$(ConfigurationYear)\$(Configuration)$(ConfigurationSuffix)\bin\</BinaryOutputPath>
+    <BinaryOutputPath Condition="'$(BinaryOutputPath)' == ''">$(SQLiteNetDir)\bin\Debug\Win32\</BinaryOutputPath>
   </PropertyGroup>
 
   <!--
