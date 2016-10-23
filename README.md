@@ -66,14 +66,12 @@ During the build a bin folder will be created with a subfolder for each Platform
 * **System.Data.SQLite.dll** - The main C++ dll which implements SQLite3, this is the binary that was changed to implement the encryption.
 * **EntityFramework.dll** - This is a DLL for entity framework 6, installed via NuGet on the solution mentioned above
 * **EntityFramework.SqlServer.dll** - This is a DLL for entity framework 6, installed via NuGet on the solution mentioned above
-* **SQLite.Designer.dll** - This is a DLL from the Standard SQLite Download Package (No Change was made)
-* **System.Data.SQLite.EF6.dll** - This is a DLL from the Standard SQLite Download Package (No Change was made)
-* **System.Data.SQLite.Linq.dll** - This is a DLL from the Standard SQLite Download Package (No Change was made)
+* **System.Data.SQLite.EF6.dll** - This is a DLL that provides support for EF with SQLite, it is available on the Solution Build Tree (No Change was made)
+* **System.Data.SQLite.Linq.dll** - This is a DLL that provides support for EF with SQLite, it is available on the Solution Build Tree (No Change was made)
 
-Our project just touched the System.Data.SQLite.dll binary, as it is the only artefact to be changed to implement encryption. All the other files from from the package: 
-sqlite-netFx46-static-binary-x64-2015-1.0.102.0.zip (which can be downloaded at [https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki](https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki))
+All the code and binaries needed were downloaded from https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki](https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki)), it is the sqlite-netFx-full-source-1.0.102.0.zip package, this package contains several projects, from which only the C++ DLL: System.Data.SQLite is of importance.
 
-The code modified was also downloaded from [https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki](https://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki)), it is the sqlite-netFx-full-source-1.0.102.0.zip package, this package contains several projects, from which only the C++ DLL: System.Data.SQLite is of importance.
+Besides System.Data.SQLite Source code downloaded from the website above, we also use NUnit and XUnit++ for unit tests, and they are available on the 3rdParty folder on the solution.
 
 ### Unit Tests
 
