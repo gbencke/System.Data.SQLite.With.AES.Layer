@@ -32,7 +32,7 @@ After that, you just set the encryption details:
 
 And that is all.
 
-###Technical Implementation
+### Technical Implementation
 
 #### **Encryption**
 
@@ -56,7 +56,7 @@ PRAGMA encryption_method=AES
 PRAGMA encryption_keys="000102030405060708090a0b0c0d0e0f"
 
 
-###Build
+### Build
 
 The implementation was made with Visual Studio Professional 2012, but targeting .NET Framework 4.6, in order to build the solution, just open the SqliteProjects.sln file and then build the C++ Project and then the .NET Project.
 
